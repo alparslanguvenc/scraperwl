@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withlocals Review Scraper</title>
+    <style>
+        body { font-family: -apple-system, system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+        h1 { color: #333; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input[type="text"] { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; }
+        #status { margin-top: 20px; font-weight: bold; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 2s linear infinite; display: none; vertical-align: middle; margin-left: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Withlocals Review Scraper</h1>
+        <p>Paste the tour URL below to scrape all reviews (including dynamic loading) into a Word document.</p>
+        
+        <input type="text" id="urlInput" placeholder="https://www.withlocals.com/experience/..." value="https://www.withlocals.com/experience/the-beauty-of-bangkok-by-bike-longtail-boat-tour-e12b11bc/">
+        
+        <button onclick="startScrape()" id="scrapeBtn">Scrape Reviews</button>
+        <div class="loader" id="loader"></div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        async function startScrape() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) return alert("Please enter a URL");
+            
+            const btn = document.getElementById('scrapeBtn');
+            const loader = document.getElementById('loader');
+            const status = document.getElementById('status');
+            
+            btn.disabled = true;
+            loader.style.display = 'inline-block';
+            status.innerText = "Starting scraper... This opens a browser in the background and may take a minute.";
+            
+            try {
+                const response = await fetch('/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    status.innerHTML = `Success! Found ${data.count} reviews. <a href="${data.download_url}">Download Word Document</a>`;
+                    window.location.href = data.download_url;
+                } else {
+                    status.innerText = "Error: " + data.error;
+                }
+            } catch (e) {
+                status.innerText = "Network Error: " + e.message;
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

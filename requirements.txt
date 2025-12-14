@@ -1,0 +1,5 @@
+flask
+playwright
+python-docx
+beautifulsoup4
+gunicorn

@@ -14,7 +14,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Ensure browsers are installed (The base image has them, but good to be sure for Chromium)
-RUN playwright install chromium
+# Browsers are already in the base image for 1.40.0
+# RUN playwright install chromium
 
 # Copy application code
 COPY . .

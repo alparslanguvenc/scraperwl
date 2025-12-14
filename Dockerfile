@@ -1,11 +1,6 @@
-FROM python:3.11-slim
-
-# Install system dependencies
-# Playwright needs these to install browsers
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    && rm -rf /var/lib/apt/lists/*
+# Use official Playwright image (includes Python, Browsers, System Dependencies)
+# This is much more stable than installing on top of python:slim
+FROM mcr.microsoft.com/playwright/python:v1.40.0-jammy
 
 # Set working directory
 WORKDIR /app
@@ -14,16 +9,17 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
+# Note: playwright is already in the image, but requirements might have specific version
+# We install others (flask, beautifulsoup4, gunicorn)
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install gunicorn
 
-# Install Playwright browsers (Chromium only to save space)
-RUN playwright install --with-deps chromium
+# Ensure browsers are installed (The base image has them, but good to be sure for Chromium)
+RUN playwright install chromium
 
 # Copy application code
 COPY . .
 
-# Expose port
+# Expose port (Documentation only, real binding happens via CMD)
 EXPOSE 5000
 
 # Metadata
@@ -31,4 +27,5 @@ ENV FLASK_APP=app.py
 
 # Run commands
 # Using gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "300", "app:app"]
+# Important: Bind to 0.0.0.0:[PORT]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT --timeout 300 app:app"]
